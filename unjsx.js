@@ -31,6 +31,10 @@ function JSXElement({ openingElement, closingElement, children }) {
 		} else if(value.type === "Literal") { // XXX: simplistic?
 			memo.literals.push(`${name.name}="${htmlEncode(value.value, true)}"`);
 		} else {
+			let id = value.expression.name;
+			let _value = id ? `\`${id}\`` : `[${value.type}]`;
+			console.log(`[skip] ${name.name}=${_value}`,
+					id ? "" : serializeExpression(value.expression));
 			memo.other++;
 		}
 		return memo;
@@ -58,6 +62,17 @@ function analyzeChildren(children) {
 	if(!otherChildren) {
 		let txt = _simpleChildren.map(child => htmlEncode(child)).join("");
 		console.log(`🧒  ${txt.trim()}`);
+	}
+}
+
+function serializeExpression(expr) {
+	switch(expr.type) {
+	case "LogicalExpression":
+		let { left, operator, right } = expr;
+		return [`«${left.type} ${left.name || left.value || "TODO"}»`, operator,
+				`«${right.type} ${right.name || right.value || "TODO"}»`].join(" ");
+	default:
+		return expr;
 	}
 }
 
