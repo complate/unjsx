@@ -1,9 +1,5 @@
-import walk from "acorn-walk";
-
-let base = {
-	...walk.base,
-	JSXElement() {}
-};
+import escodegen from "escodegen";
+import estraverse from "estraverse";
 
 export default {
 	name: "unjsx",
@@ -13,15 +9,29 @@ export default {
 		}
 
 		let ast = this.parse(code);
-		walk.simple(ast, { JSXElement }, base);
+		ast = estraverse.replace(ast, {
+			keys: {
+				JSXElement: [] // XXX: ¯\_(ツ)_/¯
+			},
+			enter(node, parent) {
+				if(node.type === "JSXElement") {
+					return JSXElement(node, parent);
+				}
+			}
+		});
 
-		return { code, ast };
+		return {
+			ast,
+			code: escodegen.generate(ast) // XXX: messes with source maps? -- XXX: should not be necessary!?
+		};
 	}
 };
 
-function JSXElement({ openingElement, closingElement, children }) {
+function JSXElement(node, parent) {
+	let { openingElement, closingElement, children } = node;
 	let { name, attributes } = openingElement;
-	if(!/^[a-z]/.test(name.name)) { // not a native element
+	let tagName = name.name;
+	if(!/^[a-z]/.test(tagName)) { // not a native element
 		return;
 	}
 
@@ -48,6 +58,11 @@ function JSXElement({ openingElement, closingElement, children }) {
 	if(children.length) {
 		analyzeChildren(children);
 	}
+
+	return { // XXX: should be a proper `Node` instance? (also because source maps)
+		type: "Literal",
+		value: `<${tagName}>` // XXX: DEBUG
+	};
 }
 
 function analyzeChildren(children) {
