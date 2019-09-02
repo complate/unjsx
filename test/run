@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+test_dir=`dirname "$0"`
+test_dir=`node -r fs -p "fs.realpathSync(process.argv[1]);" "$test_dir"`
+root_dir=`dirname "$test_dir"`
+config_file="rollup.config.js"
+
+export PATH="$root_dir/node_modules/.bin:$PATH"
+
+cd "$test_dir"
+for testfile in test_*.js{,x}; do
+	echo "== $testfile =="
+
+	sed "s/%INPUT%/$testfile/" < "rollup.template" > "$config_file"
+	rollup -c "$config_file"
+	rm "$config_file"
+done
