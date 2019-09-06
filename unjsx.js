@@ -28,7 +28,7 @@ function JSXElement({ openingElement, closingElement, children }, state, c) {
 		if (child.type === "JSXText") {
 			let txt = htmlEncode(child.value);
 			if (txt.trim()) { // XXX: skipping whitespace merely to reduce reporting noise
-				state.code.overwrite(child.start, child.end, JSON.stringify(txt.trim()) + ",\n");
+				state.code.overwrite(child.start, child.end, JSON.stringify(txt) + ",\n");
 			}
 		}
 		else { // Might only be JSXElement or JSXExpression or JSXFragment
