@@ -1,3 +1,3 @@
-import render from "./template";
+import Template from "./template";
 
-render("Hello World", "lorem ipsum");
+export default Template({ title: "Hello World", desc: "lorem ipsum", id: 4711 }).flat(999);
